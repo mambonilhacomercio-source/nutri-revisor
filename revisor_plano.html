@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revisor de Plano Alimentar</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root {
+    --verde:    #2D5A3D;
+    --verde2:   #4A8C5C;
+    --verde-cl: #E8F2EB;
+    --verde-md: #C2DEC9;
+    --creme:    #F8F4EE;
+    --creme2:   #EDE8DF;
+    --marrom:   #3D2B1F;
+    --marrom2:  #6B4C3B;
+    --dourado:  #B8953A;
+    --dourado2: #F0E4C4;
+    --cinza:    #8A9A8E;
+    --bg:       #EDEAE3;
+    --border:   rgba(45,90,61,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--marrom);
+    min-height: 100vh;
+  }
+
+  /* ===== TOPO FIXO ===== */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--verde);
+    padding: 0 32px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 20px rgba(45,90,61,0.3);
+  }
+
+  .topbar-esq {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .topbar-logo {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--dourado);
+  }
+
+  .topbar-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+
+  .topbar-badge {
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.8);
+    letter-spacing: 0.06em;
+  }
+
+  .topbar-dir {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-topbar {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.18s;
+  }
+
+  .btn-outline-w {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.35);
+    color: rgba(255,255,255,0.85);
+  }
+
+  .btn-outline-w:hover { background: rgba(255,255,255,0.1); }
+
+  .btn-pdf {
+    background: var(--dourado);
+    color: #fff;
+    padding: 8px 22px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-pdf:hover { background: #a07a28; transform: translateY(-1px); }
+  .btn-pdf:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .btn-pdf-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.7);
+  }
+
+  /* ===== LAYOUT PRINCIPAL ===== */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 84px 24px 60px;
+  }
+
+  /* ===== BANNER DE NOTIFICAÇÃO ===== */
+  .banner {
+    background: var(--verde);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    animation: slideDown 0.5s ease both;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .banner-icon {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .banner-txt h3 {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+
+  .banner-txt p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    font-weight: 300;
+  }
+
+  /* ===== SEÇÃO ===== */
+  .secao {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid var(--creme2);
+    overflow: hidden;
+    margin-bottom: 16px;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .secao:nth-child(2) { animation-delay: 0.05s; }
+  .secao:nth-child(3) { animation-delay: 0.10s; }
+  .secao:nth-child(4) { animation-delay: 0.15s; }
+  .secao:nth-child(5) { animation-delay: 0.20s; }
+  .secao:nth-child(6) { animation-delay: 0.25s; }
+  .secao:nth-child(7) { animation-delay: 0.30s; }
+
+  .secao-header {
+    padding: 16px 20px;
+    background: var(--creme);
+    border-bottom: 1px solid var(--creme2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .secao-header:hover { background: var(--creme2); }
+
+  .secao-header-esq {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .secao-icone {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--verde);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .secao-titulo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--marrom);
+  }
+
+  .secao-horario {
+    font-size: 11px;
+    color: var(--cinza);
+  }
+
+  .secao-chevron {
+    font-size: 12px;
+    color: var(--cinza);
+    transition: transform 0.2s;
+  }
+
+  .secao.aberta .secao-chevron { transform: rotate(180deg); }
+
+  .secao-body {
+    display: none;
+    padding: 20px;
+  }
+
+  .secao.aberta .secao-body { display: block; }
+
+  /* ===== GRID DE OPÇÕES ===== */
+  .opcoes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .opcao-card {
+    border-radius: 10px;
+    border: 1px solid var(--creme2);
+    overflow: hidden;
+  }
+
+  .opcao-topo {
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .opcao-topo.op1 { background: var(--verde); }
+  .opcao-topo.op2 { background: var(--dourado2); border-bottom: 1px solid var(--creme2); }
+
+  .op-num { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; }
+  .op1 .op-num { color: rgba(255,255,255,0.9); }
+  .op2 .op-num { color: var(--marrom2); }
+
+  .op-kcal-wrap { display: flex; align-items: center; gap: 6px; }
+  .op-kcal {
+    font-size: 12px; font-weight: 500;
+    background: rgba(255,255,255,0.2);
+    padding: 2px 8px; border-radius: 99px;
+    border: none; outline: none;
+    font-family: 'DM Sans', sans-serif;
+    cursor: text;
+  }
+  .op1 .op-kcal { color: #fff; }
+  .op2 .op-kcal { background: rgba(61,43,31,0.08); color: var(--marrom); }
+  .op-kcal:focus { background: rgba(255,255,255,0.35); }
+
+  .op-kcal-label { font-size: 10px; }
+  .op1 .op-kcal-label { color: rgba(255,255,255,0.7); }
+  .op2 .op-kcal-label { color: var(--marrom2); }
+
+  .alimentos-lista { padding: 10px 14px; }
+
+  .alimento-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--creme2);
+  }
+  .alimento-row:last-child { border-bottom: none; }
+
+  .al-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .al-nome-input {
+    flex: 1;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--marrom);
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+  .al-nome-input:focus { background: var(--creme); }
+
+  .al-qtd-input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--cinza);
+    background: transparent;
+    border: none;
+    outline: none;
+    text-align: right;
+    width: 90px;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+  .al-qtd-input:focus { background: var(--creme); color: var(--marrom); }
+
+  .btn-del-item {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--cinza);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .alimento-row:hover .btn-del-item { opacity: 1; }
+  .btn-del-item:hover { background: #fee; color: #c00; }
+
+  .btn-add-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--verde2);
+    cursor: pointer;
+    background: none;
+    border: 1px dashed var(--verde-md);
+    border-radius: 6px;
+    padding: 5px 10px;
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .btn-add-item:hover { background: var(--verde-cl); border-color: var(--verde2); }
+
+  .macros-mini {
+    display: flex;
+    gap: 10px;
+    padding: 8px 14px;
+    background: var(--creme);
+    border-top: 1px solid var(--creme2);
+    font-size: 10px;
+    color: var(--cinza);
+  }
+  .mm-label { font-weight: 500; color: var(--marrom2); margin-right: 2px; }
+  .mm-input {
+    width: 36px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--cinza);
+    padding: 0;
+  }
+  .mm-input:focus { color: var(--marrom); }
+
+  /* ===== CAMPOS SIMPLES ===== */
+  .campo-linha {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--creme2);
+  }
+  .campo-linha:last-child { border-bottom: none; }
+
+  .campo-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--cinza);
+    min-width: 110px;
+    padding-top: 4px;
+    flex-shrink: 0;
+  }
+
+  .campo-input {
+    flex: 1;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--marrom);
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 2px 6px;
+    border-radius: 6px;
+    line-height: 1.5;
+    resize: none;
+  }
+  .campo-input:focus { background: var(--creme); }
+
+  /* ===== MACROS GERAIS ===== */
+  .macros-gerais {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--creme2);
+    background: var(--creme);
+  }
+
+  .mg-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    border: 1px solid var(--creme2);
+  }
+
+  .mg-card.dest { background: var(--verde); border-color: var(--verde); }
+
+  .mg-val-input {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 600;
+    text-align: center;
+    background: transparent;
+    border: none;
+    outline: none;
+    width: 100%;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .mg-card.dest .mg-val-input { color: #fff; }
+  .mg-val-input { color: var(--verde); }
+
+  .mg-unit { font-size: 11px; color: var(--cinza); margin: 2px 0; }
+  .mg-card.dest .mg-unit { color: rgba(255,255,255,0.7); }
+  .mg-lbl { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cinza); }
+  .mg-card.dest .mg-lbl { color: rgba(255,255,255,0.6); }
+
+  /* ===== FOOTER ===== */
+  .footer-actions {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #fff;
+    border-top: 1px solid var(--creme2);
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(61,43,31,0.08);
+  }
+
+  .footer-info { font-size: 12px; color: var(--cinza); }
+  .footer-info strong { color: var(--marrom); font-weight: 500; }
+
+  .footer-btns { display: flex; gap: 10px; }
+
+  .btn-lg {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 12px 28px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.18s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-lg-outline {
+    background: transparent;
+    border: 1px solid var(--creme2);
+    color: var(--marrom2);
+  }
+  .btn-lg-outline:hover { border-color: var(--verde); color: var(--verde); }
+
+  .btn-lg-primary {
+    background: var(--verde);
+    color: #fff;
+  }
+  .btn-lg-primary:hover { background: var(--verde2); transform: translateY(-1px); }
+  .btn-lg-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Edit hint */
+  .edit-hint {
+    font-size: 11px;
+    color: var(--cinza);
+    text-align: center;
+    padding: 8px;
+    opacity: 0.7;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 80px; right: 24px;
+    background: var(--marrom);
+    color: #fff;
+    font-size: 13px;
+    padding: 12px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(61,43,31,0.25);
+    z-index: 200;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 560px) {
+    .opcoes-grid { grid-template-columns: 1fr; }
+    .macros-gerais { grid-template-columns: 1fr 1fr; }
+    .container { padding: 80px 12px 90px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-esq">
+    <div class="topbar-logo"></div>
+    <div class="topbar-title">Revisor de Plano Alimentar</div>
+    <div class="topbar-badge" id="badgePaciente">Carregando...</div>
+  </div>
+  <div class="topbar-dir">
+    <button class="btn-topbar btn-outline-w" onclick="resetarPlano()">↺ Recarregar</button>
+    <button class="btn-topbar btn-pdf" id="btnPdfTopo" onclick="gerarPDF()" disabled>
+      <div class="btn-pdf-dot"></div>
+      Gerar PDF
+    </button>
+  </div>
+</div>
+
+<div class="container" id="appContainer">
+
+  <!-- BANNER -->
+  <div class="banner" id="bannerNotif">
+    <div class="banner-icon">✓</div>
+    <div class="banner-txt">
+      <h3 id="bannerTitulo">Plano gerado com sucesso!</h3>
+      <p id="bannerDesc">Revise os dados abaixo, edite se necessário e clique em "Gerar PDF" para finalizar.</p>
+    </div>
+  </div>
+
+  <!-- MACROS GERAIS -->
+  <div class="secao aberta" style="animation-delay:0s">
+    <div class="secao-header" onclick="toggleSecao(this)">
+      <div class="secao-header-esq">
+        <div class="secao-icone">📊</div>
+        <div>
+          <div class="secao-titulo">Metas nutricionais</div>
+          <div class="secao-horario">Macronutrientes e dados do paciente</div>
+        </div>
+      </div>
+      <div class="secao-chevron">▼</div>
+    </div>
+    <div class="macros-gerais" id="macrosGerais">
+      <!-- preenchido via JS -->
+    </div>
+    <div class="secao-body" id="dadosPaciente">
+      <!-- preenchido via JS -->
+    </div>
+  </div>
+
+  <!-- REFEIÇÕES — preenchidas via JS -->
+  <div id="refeicoesList"></div>
+
+  <!-- OBSERVAÇÕES -->
+  <div class="secao aberta" style="animation-delay:0.3s">
+    <div class="secao-header" onclick="toggleSecao(this)">
+      <div class="secao-header-esq">
+        <div class="secao-icone">📋</div>
+        <div>
+          <div class="secao-titulo">Observações clínicas</div>
+          <div class="secao-horario">Orientações personalizadas</div>
+        </div>
+      </div>
+      <div class="secao-chevron">▼</div>
+    </div>
+    <div class="secao-body">
+      <div class="campo-linha">
+        <div class="campo-label">Observações</div>
+        <textarea class="campo-input" id="campoObs" rows="4" spellcheck="false"></textarea>
+      </div>
+      <div class="campo-linha">
+        <div class="campo-label">Hidratação</div>
+        <textarea class="campo-input" id="campoHidrat" rows="2" spellcheck="false"></textarea>
+      </div>
+      <div class="campo-linha">
+        <div class="campo-label">Próxima consulta</div>
+        <input class="campo-input" id="campoProxima" type="text">
+      </div>
+    </div>
+  </div>
+
+  <div class="edit-hint">Todos os campos são editáveis — clique para modificar</div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer-actions">
+  <div class="footer-info">
+    Paciente: <strong id="footerPaciente">—</strong> ·
+    <strong id="footerKcal">—</strong> kcal/dia
+  </div>
+  <div class="footer-btns">
+    <button class="btn-lg btn-lg-outline" onclick="window.print()">🖨 Imprimir</button>
+    <button class="btn-lg btn-lg-primary" id="btnPdfFooter" onclick="gerarPDF()" disabled>
+      <div class="spinner" id="spinner"></div>
+      <span id="btnPdfLabel">Confirmar e gerar PDF</span>
+    </button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// =============================================
+// DADOS — lê da URL (?dados=BASE64) ou usa demo
+// =============================================
+let plano = null;
+
+function carregarDados() {
+  const params = new URLSearchParams(window.location.search);
+  const dadosParam = params.get('dados');
+
+  if (dadosParam) {
+    try {
+      plano = JSON.parse(atob(decodeURIComponent(dadosParam)));
+      renderizar();
+      return;
+    } catch(e) {
+      console.warn('Erro ao decodificar dados da URL:', e);
+    }
+  }
+
+  // DADOS DE DEMONSTRAÇÃO (João da Silva)
+  plano = {
+    "paciente": "João da Silva",
+    "paciente_nome": "João da Silva",
+    "dados_antropometricos": { "idade": 47, "peso_atual_kg": 90, "altura_m": 1.75, "imc_atual": 29.4, "peso_meta_kg": 85, "classificacao": "Sobrepeso" },
+    "objetivo": "Perda de 5kg de gordura corporal",
+    "calorias_totais": 1800,
+    "macros": { "proteinas_g": 162, "carboidratos_g": 158, "gorduras_g": 58 },
+    "proteinas_g": 162, "carboidratos_g": 158, "gorduras_g": 58,
+    "hidratacao_ml": 3000,
+    "hidratacao_protocolo": "500ml ao acordar · 300ml entre café e almoço · 500ml entre almoço e lanche · 500ml entre lanche e jantar · 500ml após jantar. Total: 3.000ml/dia.",
+    "proxima_consulta": "Retorno em 15 dias para avaliação de progresso",
+    "observacoes": "Plano personalizado para João da Silva, 47 anos, focado em perda de 5kg. Substituição total de arroz por macarrão. Proteína elevada (1,8g/kg) para preservar massa muscular.",
+    "data_consulta": "2026-05-03",
+    "refeicoes": [
+      { "nome": "Café da manhã", "horario": "07:00 – 08:00",
+        "opcao1": { "alimentos": [{"item":"Ovos mexidos","quantidade":"3 un. (150g)"},{"item":"Pão integral","quantidade":"2 fatias (50g)"},{"item":"Queijo minas","quantidade":"30g"},{"item":"Mamão papaya","quantidade":"1 fatia (100g)"},{"item":"Café c/ leite desnatado","quantidade":"200ml"}], "calorias":445,"proteinas_g":32,"carboidratos_g":38,"gorduras_g":16 },
+        "opcao2": { "alimentos": [{"item":"Omelete com queijo","quantidade":"3 ovos + 30g"},{"item":"Tapioca","quantidade":"2 col. sopa (40g)"},{"item":"Peito de peru","quantidade":"50g"},{"item":"Banana","quantidade":"1 un. média (90g)"},{"item":"Café preto","quantidade":"150ml"}], "calorias":452,"proteinas_g":35,"carboidratos_g":42,"gorduras_g":14 }
+      },
+      { "nome": "Almoço", "horario": "12:00 – 13:00",
+        "opcao1": { "alimentos": [{"item":"Bife de panela (coxão mole)","quantidade":"180g"},{"item":"Macarrão integral ao alho e óleo","quantidade":"100g cozido"},{"item":"Feijão carioca","quantidade":"3 col. sopa"},{"item":"Salada de alface e tomate","quantidade":"à vontade"},{"item":"Brócolis refogado","quantidade":"90g"}], "calorias":715,"proteinas_g":58,"carboidratos_g":62,"gorduras_g":22 },
+        "opcao2": { "alimentos": [{"item":"Carne de panela (patinho)","quantidade":"180g"},{"item":"Macarrão parafuso c/ molho caseiro","quantidade":"100g cozido"},{"item":"Feijão preto","quantidade":"3 col. sopa"},{"item":"Couve refogada","quantidade":"2 col. sopa"},{"item":"Salada verde mista","quantidade":"à vontade"}], "calorias":708,"proteinas_g":56,"carboidratos_g":64,"gorduras_g":20 }
+      },
+      { "nome": "Lanche da tarde", "horario": "15:30 – 16:30",
+        "opcao1": { "alimentos": [{"item":"Iogurte grego natural","quantidade":"150g"},{"item":"Castanhas mistas","quantidade":"10 un. (15g)"},{"item":"Morango","quantidade":"5 un. médias"}], "calorias":178,"proteinas_g":14,"carboidratos_g":12,"gorduras_g":8 },
+        "opcao2": { "alimentos": [{"item":"Queijo cottage","quantidade":"100g"},{"item":"Torradas integrais","quantidade":"3 unidades"},{"item":"Pasta de amendoim integral","quantidade":"1 col. chá (10g)"}], "calorias":182,"proteinas_g":16,"carboidratos_g":18,"gorduras_g":5 }
+      },
+      { "nome": "Jantar", "horario": "19:00 – 20:00",
+        "opcao1": { "alimentos": [{"item":"Frango grelhado desfiado","quantidade":"150g"},{"item":"Macarrão penne integral","quantidade":"80g cozido"},{"item":"Molho de tomate caseiro","quantidade":"3 col. sopa"},{"item":"Abobrinha grelhada","quantidade":"100g"},{"item":"Salada de rúcula","quantidade":"à vontade"}], "calorias":448,"proteinas_g":46,"carboidratos_g":42,"gorduras_g":10 },
+        "opcao2": { "alimentos": [{"item":"Carne moída refogada (patinho)","quantidade":"140g"},{"item":"Macarrão espaguete","quantidade":"80g cozido"},{"item":"Cenoura e vagem cozidas","quantidade":"100g"},{"item":"Berinjela grelhada","quantidade":"80g"},{"item":"Salada verde","quantidade":"à vontade"}], "calorias":455,"proteinas_g":44,"carboidratos_g":46,"gorduras_g":11 }
+      }
+    ]
+  };
+  renderizar();
+}
+
+// =============================================
+// RENDERIZAÇÃO
+// =============================================
+function renderizar() {
+  const nome = plano.paciente_nome || plano.paciente || 'Paciente';
+  document.getElementById('badgePaciente').textContent = nome;
+  document.getElementById('footerPaciente').textContent = nome;
+  document.getElementById('footerKcal').textContent = plano.calorias_totais || '—';
+  document.getElementById('bannerTitulo').textContent = `Plano de ${nome} gerado com sucesso!`;
+
+  renderMacros();
+  renderDadosPaciente();
+  renderRefeicoes();
+  renderObs();
+
+  document.getElementById('btnPdfTopo').disabled = false;
+  document.getElementById('btnPdfFooter').disabled = false;
+}
+
+function renderMacros() {
+  const m = plano.macros || {};
+  const prot = plano.proteinas_g || m.proteinas_g || 0;
+  const carb = plano.carboidratos_g || m.carboidratos_g || 0;
+  const gord = plano.gorduras_g || m.gorduras_g || 0;
+
+  document.getElementById('macrosGerais').innerHTML = `
+    <div class="mg-card dest">
+      <input class="mg-val-input" style="color:#fff" id="mgKcal" value="${plano.calorias_totais || 0}">
+      <div class="mg-unit" style="color:rgba(255,255,255,0.7)">kcal/dia</div>
+      <div class="mg-lbl" style="color:rgba(255,255,255,0.6)">Meta calórica</div>
+    </div>
+    <div class="mg-card">
+      <input class="mg-val-input" style="color:#2D5A3D" id="mgProt" value="${prot}">
+      <div class="mg-unit">gramas</div>
+      <div class="mg-lbl">Proteínas</div>
+    </div>
+    <div class="mg-card">
+      <input class="mg-val-input" style="color:#B8953A" id="mgCarb" value="${carb}">
+      <div class="mg-unit">gramas</div>
+      <div class="mg-lbl">Carboidratos</div>
+    </div>
+    <div class="mg-card">
+      <input class="mg-val-input" style="color:#6B4C3B" id="mgGord" value="${gord}">
+      <div class="mg-unit">gramas</div>
+      <div class="mg-lbl">Gorduras</div>
+    </div>
+  `;
+}
+
+function renderDadosPaciente() {
+  const a = plano.dados_antropometricos || {};
+  document.getElementById('dadosPaciente').innerHTML = `
+    <div class="campo-linha">
+      <div class="campo-label">Paciente</div>
+      <input class="campo-input" id="cpNome" value="${plano.paciente_nome || plano.paciente || ''}">
+    </div>
+    <div class="campo-linha">
+      <div class="campo-label">Objetivo</div>
+      <input class="campo-input" id="cpObjetivo" value="${plano.objetivo || plano.paciente_objetivo || ''}">
+    </div>
+    <div class="campo-linha">
+      <div class="campo-label">Peso atual</div>
+      <input class="campo-input" id="cpPeso" value="${a.peso_atual_kg || plano.paciente_peso || ''}kg">
+    </div>
+    <div class="campo-linha">
+      <div class="campo-label">IMC</div>
+      <input class="campo-input" id="cpImc" value="${a.imc_atual || ''} — ${a.classificacao || ''}">
+    </div>
+    <div class="campo-linha">
+      <div class="campo-label">Data</div>
+      <input class="campo-input" id="cpData" value="${formatarData(plano.data_consulta)}">
+    </div>
+  `;
+}
+
+function renderRefeicoes() {
+  const refs = plano.refeicoes || [];
+  const icones = ['☕','🍽️','🍎','🌙'];
+  const delay = [0.1, 0.15, 0.2, 0.25];
+
+  document.getElementById('refeicoesList').innerHTML = refs.map((ref, ri) => `
+    <div class="secao aberta" style="animation-delay:${delay[ri]}s" id="secRef${ri}">
+      <div class="secao-header" onclick="toggleSecao(this)">
+        <div class="secao-header-esq">
+          <div class="secao-icone">${icones[ri] || '🍴'}</div>
+          <div>
+            <div class="secao-titulo">${ref.nome}</div>
+            <div class="secao-horario">${ref.horario}</div>
+          </div>
+        </div>
+        <div class="secao-chevron">▼</div>
+      </div>
+      <div class="secao-body">
+        <div class="opcoes-grid">
+          ${renderOpcao(ref.opcao1, ri, 1)}
+          ${renderOpcao(ref.opcao2, ri, 2)}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderOpcao(op, ri, numOp) {
+  const cor = numOp === 1 ? '#2D5A3D' : '#B8953A';
+  const classe = numOp === 1 ? 'op1' : 'op2';
+
+  const alimentos = (op.alimentos || []).map((al, ai) => `
+    <div class="alimento-row" id="al_${ri}_${numOp}_${ai}">
+      <div class="al-dot" style="background:${cor}"></div>
+      <input class="al-nome-input" value="${al.item}" placeholder="Alimento">
+      <input class="al-qtd-input" value="${al.quantidade}" placeholder="Qtd">
+      <button class="btn-del-item" onclick="removerAlimento(${ri},${numOp},${ai})">×</button>
+    </div>
+  `).join('');
+
+  return `
+    <div class="opcao-card">
+      <div class="opcao-topo ${classe}">
+        <span class="op-num">Opção ${numOp}</span>
+        <div class="op-kcal-wrap">
+          <input class="op-kcal" id="kcal_${ri}_${numOp}" value="${op.calorias}">
+          <span class="op-kcal-label">kcal</span>
+        </div>
+      </div>
+      <div class="alimentos-lista" id="lista_${ri}_${numOp}">
+        ${alimentos}
+      </div>
+      <button class="btn-add-item" onclick="adicionarAlimento(${ri},${numOp})">+ Adicionar alimento</button>
+      <div class="macros-mini">
+        <div><span class="mm-label">P:</span><input class="mm-input" id="prot_${ri}_${numOp}" value="${op.proteinas_g}">g</div>
+        <div><span class="mm-label">C:</span><input class="mm-input" id="carb_${ri}_${numOp}" value="${op.carboidratos_g}">g</div>
+        <div><span class="mm-label">G:</span><input class="mm-input" id="gord_${ri}_${numOp}" value="${op.gorduras_g}">g</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderObs() {
+  document.getElementById('campoObs').value = plano.observacoes || '';
+  document.getElementById('campoHidrat').value = plano.hidratacao_protocolo || '';
+  document.getElementById('campoProxima').value = plano.proxima_consulta || '';
+}
+
+// =============================================
+// INTERAÇÕES
+// =============================================
+function toggleSecao(header) {
+  const secao = header.closest('.secao');
+  secao.classList.toggle('aberta');
+}
+
+function adicionarAlimento(ri, numOp) {
+  const lista = document.getElementById(`lista_${ri}_${numOp}`);
+  const ai = lista.querySelectorAll('.alimento-row').length;
+  const cor = numOp === 1 ? '#2D5A3D' : '#B8953A';
+  const div = document.createElement('div');
+  div.className = 'alimento-row';
+  div.id = `al_${ri}_${numOp}_${ai}`;
+  div.innerHTML = `
+    <div class="al-dot" style="background:${cor}"></div>
+    <input class="al-nome-input" placeholder="Nome do alimento" autofocus>
+    <input class="al-qtd-input" placeholder="Quantidade">
+    <button class="btn-del-item" onclick="this.closest('.alimento-row').remove()">×</button>
+  `;
+  lista.appendChild(div);
+  div.querySelector('.al-nome-input').focus();
+}
+
+function removerAlimento(ri, numOp, ai) {
+  const el = document.getElementById(`al_${ri}_${numOp}_${ai}`);
+  if (el) el.remove();
+}
+
+function resetarPlano() {
+  if (confirm('Recarregar os dados originais do plano? As edições serão perdidas.')) {
+    carregarDados();
+    showToast('Plano recarregado');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// =============================================
+// COLETA DADOS EDITADOS
+// =============================================
+function coletarDadosEditados() {
+  const refs = plano.refeicoes || [];
+  const refeicoes = refs.map((ref, ri) => {
+    function coletarOpcao(numOp) {
+      const lista = document.getElementById(`lista_${ri}_${numOp}`);
+      const rows = lista ? lista.querySelectorAll('.alimento-row') : [];
+      const alimentos = Array.from(rows).map(row => ({
+        item: row.querySelector('.al-nome-input')?.value || '',
+        quantidade: row.querySelector('.al-qtd-input')?.value || ''
+      })).filter(a => a.item.trim() !== '');
+      return {
+        alimentos,
+        calorias: parseInt(document.getElementById(`kcal_${ri}_${numOp}`)?.value) || 0,
+        proteinas_g: parseInt(document.getElementById(`prot_${ri}_${numOp}`)?.value) || 0,
+        carboidratos_g: parseInt(document.getElementById(`carb_${ri}_${numOp}`)?.value) || 0,
+        gorduras_g: parseInt(document.getElementById(`gord_${ri}_${numOp}`)?.value) || 0,
+      };
+    }
+    return { nome: ref.nome, horario: ref.horario, opcao1: coletarOpcao(1), opcao2: coletarOpcao(2) };
+  });
+
+  return {
+    ...plano,
+    paciente_nome: document.getElementById('cpNome')?.value || plano.paciente_nome,
+    paciente: document.getElementById('cpNome')?.value || plano.paciente,
+    objetivo: document.getElementById('cpObjetivo')?.value || plano.objetivo,
+    calorias_totais: parseInt(document.getElementById('mgKcal')?.value) || plano.calorias_totais,
+    proteinas_g: parseInt(document.getElementById('mgProt')?.value) || plano.proteinas_g,
+    carboidratos_g: parseInt(document.getElementById('mgCarb')?.value) || plano.carboidratos_g,
+    gorduras_g: parseInt(document.getElementById('mgGord')?.value) || plano.gorduras_g,
+    observacoes: document.getElementById('campoObs')?.value || plano.observacoes,
+    hidratacao_protocolo: document.getElementById('campoHidrat')?.value || plano.hidratacao_protocolo,
+    proxima_consulta: document.getElementById('campoProxima')?.value || plano.proxima_consulta,
+    data_consulta: plano.data_consulta,
+    dados_antropometricos: plano.dados_antropometricos || {},
+    refeicoes
+  };
+}
+
+// =============================================
+// GERAR PDF
+// =============================================
+function gerarPDF() {
+  const dados = coletarDadosEditados();
+  const btn = document.getElementById('btnPdfFooter');
+  const spinner = document.getElementById('spinner');
+  const label = document.getElementById('btnPdfLabel');
+
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  label.textContent = 'Gerando PDF...';
+  showToast('Gerando PDF — aguarde...');
+
+  const htmlPDF = gerarHTMLPDF(dados);
+  const opt = {
+    margin: 0,
+    filename: `plano_alimentar_${(dados.paciente_nome||'paciente').replace(/\s+/g,'_')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+
+  html2pdf().set(opt).from(htmlPDF).save().then(() => {
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    label.textContent = 'Confirmar e gerar PDF';
+    document.getElementById('btnPdfTopo').disabled = false;
+    showToast('PDF gerado com sucesso!');
+  }).catch(err => {
+    console.error(err);
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    label.textContent = 'Confirmar e gerar PDF';
+    showToast('Erro ao gerar PDF — tente novamente');
+  });
+}
+
+// =============================================
+// HTML PARA PDF (mesmo design do plano)
+// =============================================
+function gerarHTMLPDF(d) {
+  const antro = d.dados_antropometricos || {};
+  const dataFmt = formatarData(d.data_consulta);
+  const nome = d.paciente_nome || d.paciente || 'Paciente';
+
+  function listaAl(als, cor) {
+    return (als||[]).map(a => `<div style="display:flex;align-items:flex-start;gap:8px;padding:4px 0;border-bottom:1px solid #EDE8DF;font-size:11px;"><div style="width:5px;height:5px;border-radius:50%;background:${cor};margin-top:5px;flex-shrink:0;"></div><div style="flex:1;color:#3D2B1F;line-height:1.4;">${a.item}</div><div style="color:#8A9A8E;white-space:nowrap;">${a.quantidade}</div></div>`).join('');
+  }
+
+  function opcaoCard(op, num) {
+    const isBg = num === 1;
+    const hdBg = isBg ? '#2D5A3D' : '#F0E4C4';
+    const hdClr = isBg ? '#fff' : '#6B4C3B';
+    const dotClr = isBg ? '#2D5A3D' : '#B8953A';
+    return `<div style="border-radius:10px;border:1px solid #EDE8DF;overflow:hidden;flex:1;">
+      <div style="padding:10px 14px;display:flex;justify-content:space-between;background:${hdBg};border-bottom:1px solid #EDE8DF;">
+        <span style="font-size:10px;font-weight:500;color:${hdClr};">Opção ${num}</span>
+        <span style="font-size:12px;font-weight:500;color:${hdClr};">${op.calorias} kcal</span>
+      </div>
+      <div style="padding:12px 14px;">${listaAl(op.alimentos, dotClr)}</div>
+      <div style="display:flex;gap:10px;padding:8px 14px;background:#F8F4EE;border-top:1px solid #EDE8DF;font-size:10px;color:#8A9A8E;">
+        <span><b style="color:#6B4C3B">P:</b> ${op.proteinas_g}g</span>
+        <span><b style="color:#6B4C3B">C:</b> ${op.carboidratos_g}g</span>
+        <span><b style="color:#6B4C3B">G:</b> ${op.gorduras_g}g</span>
+      </div>
+    </div>`;
+  }
+
+  const refHtml = (d.refeicoes||[]).map(r => `
+    <div style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:#2D5A3D;flex-shrink:0;"></div>
+        <div>
+          <div style="font-family:Cormorant Garamond,serif;font-size:20px;font-weight:600;color:#3D2B1F;">${r.nome}</div>
+          <div style="font-size:11px;color:#8A9A8E;">${r.horario}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;">${opcaoCard(r.opcao1,1)}${opcaoCard(r.opcao2,2)}</div>
+    </div>
+    <div style="height:1px;background:#EDE8DF;margin:16px 0;"></div>
+  `).join('');
+
+  return `<html><head>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'DM Sans',sans-serif;background:#fff;}</style>
+  </head><body>
+
+  <!-- CAPA -->
+  <div style="width:210mm;height:297mm;background:#F8F4EE;display:flex;flex-direction:column;page-break-after:always;">
+    <div style="background:#2D5A3D;height:58%;padding:40px 44px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:#B8953A;"></div>
+        <span style="font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:rgba(255,255,255,0.7);">Consultório de Nutrição</span>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#C2DEC9;margin-bottom:12px;">Prescrição Nutricional Personalizada</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:600;color:#fff;line-height:1.05;margin-bottom:8px;">Plano<br>Alimentar</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.6);">Desenvolvido com base na anamnese e preferências</div>
+      </div>
+    </div>
+    <div style="flex:1;padding:36px 44px;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="background:#fff;border-radius:12px;padding:24px 28px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;border:1px solid #EDE8DF;">
+        <div><div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#8A9A8E;margin-bottom:5px;">Paciente</div><div style="font-size:16px;font-weight:500;color:#3D2B1F;">${nome}</div></div>
+        <div><div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#8A9A8E;margin-bottom:5px;">Data</div><div style="font-size:16px;font-weight:500;color:#3D2B1F;">${dataFmt}</div></div>
+        <div><div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#8A9A8E;margin-bottom:5px;">Próxima consulta</div><div style="font-size:13px;color:#6B4C3B;">${d.proxima_consulta||'15 dias'}</div></div>
+        <div><div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#8A9A8E;margin-bottom:5px;">Idade</div><div style="font-size:16px;font-weight:500;color:#3D2B1F;">${antro.idade||''} anos</div></div>
+        <div><div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#8A9A8E;margin-bottom:5px;">Peso atual</div><div style="font-size:16px;font-weight:500;color:#3D2B1F;">${antro.peso_atual_kg||d.paciente_peso||''} kg</div></div>
+        <div><div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#8A9A8E;margin-bottom:5px;">Peso meta</div><div style="font-size:16px;font-weight:500;color:#3D2B1F;">${antro.peso_meta_kg||''} kg</div></div>
+      </div>
+      <div style="background:#E8F2EB;border-radius:10px;padding:16px 20px;display:flex;align-items:center;gap:14px;border:1px solid #C2DEC9;">
+        <div style="width:36px;height:36px;border-radius:50%;background:#2D5A3D;flex-shrink:0;"></div>
+        <div>
+          <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#4A8C5C;margin-bottom:3px;">Objetivo do plano</div>
+          <div style="font-size:13px;font-weight:500;color:#2D5A3D;">${d.objetivo||''}</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:#8A9A8E;display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid #EDE8DF;">
+        <span>Documento confidencial</span><span>1 / 4</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PÁG 2: METAS + CAFÉ + ALMOÇO -->
+  <div style="width:210mm;min-height:297mm;background:#F8F4EE;padding:36px 44px;page-break-after:always;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;padding-bottom:16px;border-bottom:1.5px solid #2D5A3D;">
+      <div><div style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#8A9A8E;margin-bottom:4px;">02 / 04</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#2D5A3D;">Metas nutricionais</div></div>
+      <div style="font-size:10px;color:#8A9A8E;">${nome} · ${dataFmt}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">
+      <div style="background:#2D5A3D;border-radius:10px;padding:16px;text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:#fff;line-height:1;">${d.calorias_totais}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.7);">kcal/dia</div>
+        <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-top:6px;">Meta calórica</div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:16px;text-align:center;border:1px solid #EDE8DF;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:#2D5A3D;line-height:1;">${d.proteinas_g}</div>
+        <div style="font-size:11px;color:#8A9A8E;">gramas</div>
+        <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8A9A8E;margin-top:6px;">Proteínas</div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:16px;text-align:center;border:1px solid #EDE8DF;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:#B8953A;line-height:1;">${d.carboidratos_g}</div>
+        <div style="font-size:11px;color:#8A9A8E;">gramas</div>
+        <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8A9A8E;margin-top:6px;">Carboidratos</div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:16px;text-align:center;border:1px solid #EDE8DF;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:#6B4C3B;line-height:1;">${d.gorduras_g}</div>
+        <div style="font-size:11px;color:#8A9A8E;">gramas</div>
+        <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#8A9A8E;margin-top:6px;">Gorduras</div>
+      </div>
+    </div>
+    <div style="height:1px;background:#EDE8DF;margin:20px 0;"></div>
+    ${(d.refeicoes||[]).slice(0,2).map(r => `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:#2D5A3D;flex-shrink:0;"></div>
+        <div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:#3D2B1F;">${r.nome}</div><div style="font-size:11px;color:#8A9A8E;">${r.horario}</div></div>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:16px;">${opcaoCard(r.opcao1,1)}${opcaoCard(r.opcao2,2)}</div>
+      <div style="height:1px;background:#EDE8DF;margin:16px 0;"></div>
+    `).join('')}
+    <div style="margin-top:auto;padding-top:16px;border-top:1px solid #EDE8DF;display:flex;justify-content:space-between;font-size:9px;color:#8A9A8E;"><span>${nome} — Plano Alimentar</span><span>2 / 4</span></div>
+  </div>
+
+  <!-- PÁG 3: LANCHE + JANTAR -->
+  <div style="width:210mm;min-height:297mm;background:#F8F4EE;padding:36px 44px;page-break-after:always;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;padding-bottom:16px;border-bottom:1.5px solid #2D5A3D;">
+      <div><div style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#8A9A8E;margin-bottom:4px;">03 / 04</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#2D5A3D;">Lanche da tarde &amp; Jantar</div></div>
+      <div style="font-size:10px;color:#8A9A8E;">${nome} · ${dataFmt}</div>
+    </div>
+    ${(d.refeicoes||[]).slice(2,4).map(r => `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:#2D5A3D;flex-shrink:0;"></div>
+        <div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:#3D2B1F;">${r.nome}</div><div style="font-size:11px;color:#8A9A8E;">${r.horario}</div></div>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:16px;">${opcaoCard(r.opcao1,1)}${opcaoCard(r.opcao2,2)}</div>
+      <div style="height:1px;background:#EDE8DF;margin:16px 0;"></div>
+    `).join('')}
+    <div style="margin-top:auto;padding-top:16px;border-top:1px solid #EDE8DF;display:flex;justify-content:space-between;font-size:9px;color:#8A9A8E;"><span>${nome} — Plano Alimentar</span><span>3 / 4</span></div>
+  </div>
+
+  <!-- PÁG 4: ORIENTAÇÕES -->
+  <div style="width:210mm;min-height:297mm;background:#F8F4EE;padding:36px 44px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;padding-bottom:16px;border-bottom:1.5px solid #2D5A3D;">
+      <div><div style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#8A9A8E;margin-bottom:4px;">04 / 04</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#2D5A3D;">Orientações clínicas</div></div>
+      <div style="font-size:10px;color:#8A9A8E;">${nome} · ${dataFmt}</div>
+    </div>
+    <div style="background:#E8F2EB;border-radius:12px;padding:20px 24px;border:1px solid #C2DEC9;margin-bottom:14px;">
+      <div style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#4A8C5C;margin-bottom:10px;">Observações do nutricionista</div>
+      <div style="font-size:11px;color:#2D5A3D;line-height:1.75;">${d.observacoes||''}</div>
+    </div>
+    <div style="background:#fff;border-radius:12px;padding:20px 24px;border:1px solid #EDE8DF;margin-bottom:14px;">
+      <div style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#6B4C3B;margin-bottom:10px;">Protocolo de hidratação</div>
+      <div style="font-size:11px;color:#6B4C3B;line-height:1.75;">${d.hidratacao_protocolo||''}</div>
+    </div>
+    <div style="background:#2D5A3D;border-radius:10px;padding:16px 20px;margin-bottom:14px;">
+      <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:4px;">Próxima consulta</div>
+      <div style="font-size:13px;font-weight:500;color:#fff;">${d.proxima_consulta||''}</div>
+    </div>
+    <div style="margin-top:auto;padding-top:16px;border-top:1px solid #EDE8DF;display:flex;justify-content:space-between;font-size:9px;color:#8A9A8E;"><span>${nome} — Plano Alimentar Nutricional · Confidencial</span><span>4 / 4</span></div>
+  </div>
+
+  </body></html>`;
+}
+
+function formatarData(iso) {
+  if (!iso) return new Date().toLocaleDateString('pt-BR');
+  const [a,m,d] = iso.split('-');
+  return `${d}/${m}/${a}`;
+}
+
+// =============================================
+// INTEGRAÇÃO N8N
+// Como usar: após o Code que gera o plano,
+// adicione um nó HTTP Request que abre esta
+// página passando os dados do paciente assim:
+//
+// URL: https://sua-url/revisor.html?dados=BASE64
+//
+// O BASE64 é gerado com:
+//   btoa(JSON.stringify(plano))
+// =============================================
+
+// Inicia
+carregarDados();
+</script>
+</body>
+</html>
