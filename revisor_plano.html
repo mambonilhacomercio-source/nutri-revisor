@@ -655,19 +655,38 @@
 // =============================================
 let plano = null;
 
-function carregarDados() {
-  const params = new URLSearchParams(window.location.search);
-  const dadosParam = params.get('dados');
+const SUPABASE_URL  = 'https://jhxrhprxiqyoykddmfme.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_-YNtT87qX_HNceNxq8PwMw_J-aE6rbu';
 
-  if (dadosParam) {
-    try {
-      plano = JSON.parse(atob(decodeURIComponent(dadosParam)));
+function carregarDados() {
+  const params  = new URLSearchParams(window.location.search);
+  const idParam = params.get('id');
+
+  // MODO 1: ID na URL → busca plano no Supabase
+  if (idParam) {
+    document.getElementById('badgePaciente').textContent = 'Carregando...';
+
+    fetch(`${SUPABASE_URL}/rest/v1/planos_temp?id=eq.${idParam}&select=plano`, {
+      headers: {
+        'apikey': SUPABASE_ANON,
+        'Authorization': 'Bearer ' + SUPABASE_ANON
+      }
+    })
+    .then(r => r.json())
+    .then(rows => {
+      if (!rows || rows.length === 0) throw new Error('Plano não encontrado no banco de dados.');
+      plano = rows[0].plano;
       renderizar();
-      return;
-    } catch(e) {
-      console.warn('Erro ao decodificar dados da URL:', e);
-    }
+    })
+    .catch(e => {
+      console.error('Erro ao buscar plano:', e);
+      document.getElementById('bannerTitulo').textContent = 'Erro ao carregar plano';
+      document.getElementById('bannerDesc').textContent = e.message;
+    });
+    return;
   }
+
+  // MODO 2: Fallback — dados de demonstração
 
   // DADOS DE DEMONSTRAÇÃO (João da Silva)
   plano = {

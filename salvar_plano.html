@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carregando plano...</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: sans-serif;
+    background: #2D5A3D;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .dot-wrap { display: flex; gap: 8px; }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    animation: pulse 1.2s ease infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse {
+    0%,100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.1); }
+  }
+  p { color: rgba(255,255,255,0.7); font-size: 13px; }
+</style>
+</head>
+<body>
+  <div class="dot-wrap">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+  <p>Carregando plano alimentar...</p>
+
+<script>
+(function() {
+  // Pega os dados da URL (GET) ou do hash
+  const params = new URLSearchParams(window.location.search);
+  const dadosParam = params.get('dados');
+  const hashParam = window.location.hash.slice(1); // remove o #
+
+  const raw = dadosParam || hashParam;
+
+  if (!raw) {
+    document.querySelector('p').textContent = 'Erro: nenhum dado recebido.';
+    return;
+  }
+
+  try {
+    // Decodifica o Base64
+    const json = atob(decodeURIComponent(raw));
+    const plano = JSON.parse(json);
+
+    // Gera um ID único para este plano
+    const id = 'plano_' + Date.now();
+
+    // Salva no localStorage (persiste entre abas)
+    try {
+      localStorage.setItem(id, json);
+    } catch(e) {
+      // localStorage cheio — tenta limpar planos antigos
+      for (let k in localStorage) {
+        if (k.startsWith('plano_')) localStorage.removeItem(k);
+      }
+      localStorage.setItem(id, json);
+    }
+
+    // Salva também no sessionStorage como backup
+    try { sessionStorage.setItem(id, json); } catch(e) {}
+
+    // Redireciona para o revisor com apenas o ID pequeno na URL
+    const idCurto = id.replace('plano_', '');
+    window.location.href = 'revisor_plano.html?id=' + idCurto;
+
+  } catch(e) {
+    document.querySelector('p').textContent = 'Erro ao processar o plano: ' + e.message;
+    console.error(e);
+  }
+})();
+</script>
+</body>
+</html>
